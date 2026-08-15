@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/KpicCafeteria.Application/KpicCafeteria.Application.csproj" />
+    <Project Path="src/KpicCafeteria.Desktop/KpicCafeteria.Desktop.csproj" />
+    <Project Path="src/KpicCafeteria.Documents/KpicCafeteria.Documents.csproj" />
+    <Project Path="src/KpicCafeteria.Domain/KpicCafeteria.Domain.csproj" />
+    <Project Path="src/KpicCafeteria.Infrastructure/KpicCafeteria.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/KpicCafeteria.Tests/KpicCafeteria.Tests.csproj" />
+  </Folder>
+</Solution>
