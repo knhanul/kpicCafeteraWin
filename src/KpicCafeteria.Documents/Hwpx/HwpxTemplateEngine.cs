@@ -56,10 +56,30 @@ public sealed class HwpxTemplateEngine
         return this;
     }
 
+    /// <summary>
+    /// 메뉴 목록 필드 치환. hp:t 내부에 XText + hp:lineBreak mixed content로 줄바꿈을 생성한다.
+    /// 일반 SetField와 달리 \r/\n을 사용하지 않고 실제 XML 요소로 lineBreak를 만든다.
+    /// </summary>
     public HwpxTemplateEngine SetMultilineField(string fieldName, object? value, string? sectionName = null)
     {
-        var text = NormaliseMultiline(value);
-        return SetField(fieldName, text, sectionName);
+        var menus = ToMenuList(value);
+        var token = HwpxPlaceholder.Token(fieldName);
+        var targetSections = sectionName is null ? Package.SectionNames() : [sectionName];
+        foreach (var name in targetSections)
+        {
+            if (!Package.Files.ContainsKey(name))
+            {
+                continue;
+            }
+
+            var root = Package.ReadXml(name);
+            if (root.Root is not null && ReplaceMenuListInRoot(root.Root, token, menus))
+            {
+                Package.WriteXml(name, root);
+            }
+        }
+
+        return this;
     }
 
     private static void SetFieldInElements(IReadOnlyList<XElement> roots, string fieldName, object? value)
@@ -72,22 +92,70 @@ public sealed class HwpxTemplateEngine
         }
     }
 
+    /// <summary>
+    /// 반복 페이지 내에서 메뉴 목록 필드를 lineBreak 요소로 치환한다.
+    /// </summary>
     private static void SetMultilineFieldInElements(IReadOnlyList<XElement> roots, string fieldName, object? value)
     {
-        var text = NormaliseMultiline(value);
-        SetFieldInElements(roots, fieldName, text);
+        var menus = ToMenuList(value);
+        var token = HwpxPlaceholder.Token(fieldName);
+        foreach (var root in roots)
+        {
+            ReplaceMenuListInRoot(root, token, menus);
+        }
     }
 
-    private static string NormaliseMultiline(object? value)
+    /// <summary>
+    /// 다양한 입력 타입에서 메뉴 문자열 목록을 추출하고 정규화한다.
+    /// - IEnumerable<string>: 각 항목을 Trim, CR/LF 제거, 빈 항목 제거
+    /// - string: \r/\n/\r\n 기준으로 분할 후 동일하게 정규화
+    /// </summary>
+    private static IReadOnlyList<string> ToMenuList(object? value)
     {
         return value switch
         {
-            null => "",
-            string s => s,
-            IEnumerable<string> items => string.Join("\n", items.Select(item => item ?? "")),
-            IEnumerable<object> items => string.Join("\n", items.Select(item => item?.ToString() ?? "")),
-            _ => value.ToString() ?? "",
+            null => [],
+            string s => CleanSegments(s.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries)),
+            IEnumerable<string> items => CleanSegments(items),
+            IEnumerable<object> items => CleanSegments(items.Select(item => item?.ToString() ?? "")),
+            _ => CleanSegments([value.ToString() ?? ""]),
         };
+
+        static IReadOnlyList<string> CleanSegments(IEnumerable<string> source)
+            => source
+                .Select(s => (s ?? "").Replace("\r", "").Replace("\n", "").Trim())
+                .Where(s => s.Length > 0)
+                .ToList();
+    }
+
+    /// <summary>
+    /// hp:t 요소 내부에 메뉴 세그먼트와 lineBreak를 mixed content로 배치한다.
+    /// - 첫 세그먼트 앞에는 lineBreak를 두지 않는다
+    /// - 마지막 세그먼트 뒤에도 lineBreak를 두지 않는다
+    /// - 빈 세그먼트는 건너뛴다
+    /// 결과: XText("menu1") + XElement(lineBreak) + XText("menu2") + ...
+    /// </summary>
+    private static void ApplyMenuListToText(XElement textElement, IReadOnlyList<string> menus)
+    {
+        if (menus.Count == 0)
+        {
+            textElement.Value = "";
+            return;
+        }
+
+        if (menus.Count == 1)
+        {
+            textElement.Value = menus[0];
+            return;
+        }
+
+        textElement.RemoveNodes();
+        textElement.Add(new XText(menus[0]));
+        for (var i = 1; i < menus.Count; i++)
+        {
+            textElement.Add(new XElement(HwpxNamespaces.HpNs + "lineBreak"));
+            textElement.Add(new XText(menus[i]));
+        }
     }
 
     // ---- 조리지시서 스타일 ----
@@ -162,15 +230,19 @@ public sealed class HwpxTemplateEngine
 
     /// <summary>
     /// 여러 줄 필드 + 비고를 별도 파란색 run으로 삽입.
-    /// 기존 setMultilineFieldWithNoteColor에 대응.
+    /// 메인 라인은 hp:t 내부에 lineBreak mixed content로, 비고는 별도 run의 hp:t에 lineBreak로 시작.
     /// </summary>
     public HwpxTemplateEngine SetMultilineFieldWithNoteColor(
         string fieldName, IReadOnlyList<string> lines, string noteText, int noteCharPrId, string? sectionName = null)
     {
-        var mainText = lines.Count > 0 ? string.Join("\n", lines) : "";
-        if (string.IsNullOrEmpty(noteText))
+        var cleanedLines = lines
+            .Select(l => (l ?? "").Replace("\r", "").Replace("\n", "").Trim())
+            .Where(l => l.Length > 0)
+            .ToList();
+        var cleanedNote = (noteText ?? "").Replace("\r", "").Replace("\n", "").Trim();
+        if (string.IsNullOrEmpty(cleanedNote))
         {
-            return SetField(fieldName, mainText, sectionName);
+            return SetMultilineField(fieldName, cleanedLines, sectionName);
         }
 
         var token = HwpxPlaceholder.Token(fieldName);
@@ -198,24 +270,30 @@ public sealed class HwpxTemplateEngine
                     continue;
                 }
 
-                texts[0].Value = joined.Replace(token, mainText, StringComparison.Ordinal);
                 for (var i = 1; i < texts.Count; i++)
                 {
                     texts[i].Value = "";
                 }
 
-                var parentRun = paragraph.Elements().FirstOrDefault(c => c.Name.LocalName == "run");
-                var newRun = new XElement(HwpxNamespaces.HpNs + "run", new XAttribute("charPrIDRef", noteCharPrId.ToString()));
-                var newT = new XElement(HwpxNamespaces.HpNs + "t", "\n" + noteText);
-                newRun.Add(newT);
-                if (parentRun is not null)
+                if (joined.Trim() == token)
                 {
-                    parentRun.AddAfterSelf(newRun);
+                    ApplyMenuListToText(texts[0], cleanedLines);
+                }
+                else
+                {
+                    texts[0].Value = joined.Replace(token, string.Join(" ", cleanedLines), StringComparison.Ordinal);
                 }
 
-                foreach (var child in paragraph.Elements().Where(c => c.Name.LocalName == "linesegarray").ToList())
+                var firstRun = texts[0].Parent;
+                if (firstRun is not null && firstRun.Name.LocalName == "run")
                 {
-                    child.Remove();
+                    var noteRun = new XElement(HwpxNamespaces.HpNs + "run",
+                        new XAttribute("charPrIDRef", noteCharPrId.ToString()));
+                    var noteT = new XElement(HwpxNamespaces.HpNs + "t");
+                    noteT.Add(new XElement(HwpxNamespaces.HpNs + "lineBreak"));
+                    noteT.Add(new XText(cleanedNote));
+                    noteRun.Add(noteT);
+                    firstRun.AddAfterSelf(noteRun);
                 }
 
                 changed = true;
@@ -546,12 +624,66 @@ public sealed class HwpxTemplateEngine
             texts[i].Value = "";
         }
 
-        foreach (var child in paragraph.Elements().Where(c => c.Name.LocalName == "linesegarray").ToList())
+        return true;
+    }
+
+    /// <summary>
+    /// 메뉴 목록 placeholder를 hp:t 내부 mixed content (XText + lineBreak)로 치환한다.
+    /// 일반 ReplacePlaceholderInParagraph와 달리 \r/\n 대신 XML lineBreak 요소를 사용한다.
+    /// </summary>
+    private static bool ReplaceMenuListInParagraph(XElement paragraph, string token, IReadOnlyList<string> menus)
+    {
+        var texts = OwnTextNodes(paragraph);
+        if (texts.Count == 0)
         {
-            child.Remove();
+            return false;
+        }
+
+        var joined = string.Concat(texts.Select(t => t.Value));
+        if (!joined.Contains(token, StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        if (menus.Count == 0)
+        {
+            texts[0].Value = joined.Replace(token, "", StringComparison.Ordinal);
+            for (var i = 1; i < texts.Count; i++)
+            {
+                texts[i].Value = "";
+            }
+            return true;
+        }
+
+        if (joined.Trim() == token)
+        {
+            for (var i = 1; i < texts.Count; i++)
+            {
+                texts[i].Value = "";
+            }
+            ApplyMenuListToText(texts[0], menus);
+        }
+        else
+        {
+            texts[0].Value = joined.Replace(token, string.Join(" ", menus), StringComparison.Ordinal);
+            for (var i = 1; i < texts.Count; i++)
+            {
+                texts[i].Value = "";
+            }
         }
 
         return true;
+    }
+
+    private static bool ReplaceMenuListInRoot(XElement root, string token, IReadOnlyList<string> menus)
+    {
+        var changed = false;
+        foreach (var paragraph in root.DescendantsAndSelf().Where(n => n.Name.LocalName == "p"))
+        {
+            changed = ReplaceMenuListInParagraph(paragraph, token, menus) || changed;
+        }
+
+        return changed;
     }
 
     private static bool ReplacePlaceholderInRoot(XElement root, string token, string? replacement)

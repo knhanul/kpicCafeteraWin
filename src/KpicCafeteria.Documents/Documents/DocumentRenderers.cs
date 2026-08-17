@@ -141,11 +141,11 @@ public sealed class MealPlanRenderer : IDocumentRenderer
         return WeekLabel.PeriodLabel(weeks[0].Start, weeks[^1].End);
     }
 
-    private static string MenuLines(MealPlanServicePayload? service)
+    private static IReadOnlyList<string> MenuLines(MealPlanServicePayload? service)
     {
         if (service is null || service.Menus.Count == 0)
         {
-            return "";
+            return [];
         }
 
         var lines = new List<string>();
@@ -155,7 +155,7 @@ public sealed class MealPlanRenderer : IDocumentRenderer
         }
 
         lines.AddRange(service.Menus.Select(menu => menu.Trim()).Where(line => line.Length > 0));
-        return string.Join("\n", lines);
+        return lines;
     }
 }
 
@@ -279,7 +279,7 @@ public sealed class CookingInstructionRenderer : IDocumentRenderer
                 {
                     var remaining = menus.Skip(slot - 1).ToList();
                     fields[prefix] = MenuName(remaining[0]);
-                    fields[ingredientPrefix] = remaining.Select(MenuBlockText).ToList();
+                    fields[ingredientPrefix] = remaining.SelectMany(MenuBlockText).ToList();
                     break;
                 }
 
@@ -319,7 +319,7 @@ public sealed class CookingInstructionRenderer : IDocumentRenderer
                 {
                     var remaining = menus.Skip(slot - 1).ToList();
                     engine.SetField(prefix, MenuName(remaining[0]), sectionName);
-                    engine.SetMultilineField(ingredientPrefix, remaining.Select(MenuBlockText).ToList(), sectionName);
+                    engine.SetMultilineField(ingredientPrefix, remaining.SelectMany(MenuBlockText).ToList(), sectionName);
                     break;
                 }
 
@@ -390,7 +390,7 @@ public sealed class CookingInstructionRenderer : IDocumentRenderer
 
     private static string NoteLine(CookingMenuPayload menu) => menu.Note;
 
-    private static string MenuBlockText(CookingMenuPayload menu)
+    private static IReadOnlyList<string> MenuBlockText(CookingMenuPayload menu)
     {
         var lines = new List<string> { MenuName(menu) };
         lines.AddRange(IngredientLines(menu));
@@ -400,7 +400,7 @@ public sealed class CookingInstructionRenderer : IDocumentRenderer
             lines.Add(note);
         }
 
-        return string.Join("\n", lines.Where(line => line.Length > 0));
+        return lines.Where(line => line.Length > 0).ToList();
     }
 
     private static List<System.Xml.Linq.XElement> OwnTextNodes(System.Xml.Linq.XElement paragraph)

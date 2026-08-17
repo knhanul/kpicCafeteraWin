@@ -171,6 +171,62 @@ public class DocumentServiceTests
             service.GenerateHwpxAsync("PURCHASE_ORDER", startDate: Monday, endDate: Monday));
     }
 
+    [Fact]
+    public async Task GenerateHwpx_MealPlan_LineBreakCountMatchesMenus()
+    {
+        using var harness = await CreateHarnessWithMultipleMenusAsync();
+        var service = harness.CreateDocumentService();
+
+        var (content, _) = await service.GenerateHwpxAsync("MEAL_PLAN", startDate: Monday, endDate: Monday);
+
+        using var zip = new ZipArchive(new MemoryStream(content), ZipArchiveMode.Read);
+        var section = zip.GetEntry("Contents/section0.xml")!;
+        using var reader = new StreamReader(section.Open());
+        var xml = await reader.ReadToEndAsync();
+
+        var lineBreakCount = System.Text.RegularExpressions.Regex.Matches(xml, "lineBreak").Count;
+        Assert.True(lineBreakCount > 0, "lineBreak 요소가 하나도 없습니다.");
+        Assert.DoesNotContain("lineBreak/><hp:lineBreak", xml, StringComparison.OrdinalIgnoreCase);
+
+        var tElements = System.Text.RegularExpressions.Regex.Matches(xml, @"<hp:t[^>]*>(.*?)</hp:t>", System.Text.RegularExpressions.RegexOptions.Singleline);
+        foreach (System.Text.RegularExpressions.Match t in tElements)
+        {
+            Assert.DoesNotContain("\r", t.Value);
+            Assert.DoesNotContain("\n", t.Value);
+        }
+    }
+
+    private static async Task<DocumentTestHarness> CreateHarnessWithMultipleMenusAsync()
+    {
+        var harness = new DocumentTestHarness();
+
+        var templateService = harness.CreateTemplateService();
+        var bytes = DefaultTemplateResources.TryGetTemplateBytes("MEAL_PLAN")
+            ?? throw new InvalidOperationException("임베디드 기본 양식 없음: MEAL_PLAN");
+        await templateService.RegisterAsync("MEAL_PLAN", "기본 양식", bytes, "default.hwpx", activate: true);
+
+        using (var db = harness.CreateContext())
+        {
+            var menus = new[] { "잡곡밥", "부대찌개", "감자채볶음", "쫄면", "샐러드", "깍두기" };
+            var service = new MealService
+            {
+                ServiceDate = Monday,
+                MealType = MealType.LUNCH,
+                PlannedCount = 400,
+                ServiceTime = new TimeOnly(11, 40),
+                Menus = menus.Select((name, i) => new MealServiceMenu
+                {
+                    MenuNameSnapshot = name,
+                    SortOrder = i + 1,
+                }).ToList(),
+            };
+            db.MealServices.Add(service);
+            await db.SaveChangesAsync();
+        }
+
+        return harness;
+    }
+
     // =======================================================================
     // PDF 생성
     // =======================================================================
