@@ -1,0 +1,26 @@
+<UserControl x:Class="KpicCafeteria.Desktop.Controls.KpiCard"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignHeight="80" d:DesignWidth="160">
+    <Border Background="{StaticResource SurfaceBrush}"
+            BorderBrush="{StaticResource BorderSubtleBrush}"
+            BorderThickness="1"
+            CornerRadius="{StaticResource CornerRadiusMedium}"
+            Padding="14,12" Margin="0,0,10,0" MinWidth="150">
+        <StackPanel>
+            <TextBlock Text="{Binding Label, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                       FontFamily="{StaticResource AppFontFamily}"
+                       FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+            <TextBlock Text="{Binding Value, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                       FontFamily="{StaticResource AppFontFamily}"
+                       FontSize="22" FontWeight="SemiBold" Margin="0,4,0,0"
+                       Foreground="{StaticResource TextPrimaryBrush}"/>
+            <TextBlock Text="{Binding Sub, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                       FontFamily="{StaticResource AppFontFamily}"
+                       FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"
+                       Margin="0,2,0,0" TextWrapping="Wrap"/>
+        </StackPanel>
+    </Border>
+</UserControl>

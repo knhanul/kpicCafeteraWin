@@ -2,6 +2,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\KpicCafeteria.Domain\KpicCafeteria.Domain.csproj" />
+    <ProjectReference Include="..\KpicCafeteria.Documents\KpicCafeteria.Documents.csproj" />
+    <PackageReference Include="ClosedXML" Version="0.105.0" />
   </ItemGroup>
 
   <PropertyGroup>

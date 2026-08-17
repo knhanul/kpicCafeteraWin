@@ -1,0 +1,547 @@
+<UserControl x:Class="KpicCafeteria.Desktop.Views.WorkspaceView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:KpicCafeteria.Desktop.ViewModels">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+        <vm:SaveStatusToBrushConverter x:Key="SaveStatusBrush"/>
+        <vm:InverseBoolToVisibilityConverter x:Key="InverseBoolToVis"/>
+        <vm:NullToVisibilityConverter x:Key="NullToVis"/>
+        <vm:NullToCollapsedVisibilityConverter x:Key="NullToCollapsedVis"/>
+    </UserControl.Resources>
+
+    <Grid Background="{StaticResource BackgroundBrush}">
+
+        <!-- ================================================================ -->
+        <!-- ==================== NORMAL MODE LAYOUT ======================== -->
+        <!-- ================================================================ -->
+        <Grid Visibility="{Binding IsFocusMode, Converter={StaticResource InverseBoolToVis}}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- ===== Top Toolbar ===== -->
+            <Border Grid.Row="0" Style="{StaticResource ToolbarBorder}">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Right" Style="{StaticResource SaveStatusBadge}"
+                               Text="{Binding SaveStatusText}"
+                               Foreground="{Binding SaveStatusColor, Converter={StaticResource SaveStatusBrush}}"
+                               Margin="16,0,0,0"/>
+                    <Button DockPanel.Dock="Right" Style="{StaticResource SubtleButton}"
+                            Command="{Binding ToggleFocusCommand}" Margin="12,0,0,0">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Style="{StaticResource IconPathSmall}" Data="{StaticResource IconExpand}" Margin="0,0,6,0"/>
+                            <TextBlock Text="집중 작성"/>
+                        </StackPanel>
+                    </Button>
+                    <ComboBox DockPanel.Dock="Right" Style="{StaticResource StandardComboBox}"
+                              Width="70" Margin="12,0,0,0"
+                              ItemsSource="{Binding WeekCountOptions}"
+                              SelectedItem="{Binding WeekCount}" VerticalAlignment="Center"/>
+                    <TextBlock DockPanel.Dock="Right" Style="{StaticResource CaptionText}"
+                               Text="주" VerticalAlignment="Center" Margin="4,0,0,0"/>
+                    <Button DockPanel.Dock="Left" Style="{StaticResource SubtleButton}"
+                            Command="{Binding TodayCommand}" Content="이번 주" Margin="12,0,0,0"/>
+                    <TextBlock DockPanel.Dock="Left" Style="{StaticResource SectionTitleText}"
+                               Text="{Binding PeriodLabel}" Margin="16,0,0,0" VerticalAlignment="Center"/>
+                    <StackPanel Orientation="Horizontal">
+                        <Button Style="{StaticResource NavArrowButton}" Command="{Binding PrevWeekCommand}" Content="‹"/>
+                        <Button Style="{StaticResource NavArrowButton}" Command="{Binding NextWeekCommand}" Content="›" Margin="2,0,0,0"/>
+                    </StackPanel>
+                    <TextBlock Style="{StaticResource PageTitleText}" Text="식단 작성"
+                               VerticalAlignment="Center" Margin="0,0,12,0"/>
+                </DockPanel>
+            </Border>
+
+            <!-- ===== Main Content ===== -->
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="400" MinWidth="340"/>
+                </Grid.ColumnDefinitions>
+
+                <ScrollViewer Grid.Column="0" Style="{StaticResource ThinScrollViewer}"
+                              VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <ItemsControl ItemsSource="{Binding Days}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate><UniformGrid Columns="5"/></ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Style="{StaticResource DayCardBorder}">
+                                    <StackPanel>
+                                        <Border Style="{StaticResource DayCardHeader}">
+                                            <StackPanel>
+                                                <TextBlock Style="{StaticResource WeekLabelText}" Text="{Binding WeekLabel}"/>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="{Binding Weekday}" Style="{StaticResource BodyStrongText}"/>
+                                                    <TextBlock Text="{Binding DateLabel}" Style="{StaticResource CaptionText}" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="오늘" FontSize="10" FontWeight="SemiBold" Foreground="{StaticResource AccentBrush}" Margin="6,0,0,0" VerticalAlignment="Center" Visibility="{Binding IsToday, Converter={StaticResource BoolToVis}}"/>
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </Border>
+                                        <ItemsControl ItemsSource="{Binding Services}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Button Style="{StaticResource ServiceCardButton}"
+                                                            Command="{Binding DataContext.SelectServiceCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                            CommandParameter="{Binding}">
+                                                        <StackPanel>
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <TextBlock Style="{StaticResource MealTypeLabel}" Text="{Binding MealTypeName}"/>
+                                                                <TextBlock Style="{StaticResource NumericText}" Text="{Binding PlannedCount}" Margin="8,0,0,0"/>
+                                                            </StackPanel>
+                                                            <TextBlock Style="{StaticResource MenuSummaryText}" Text="{Binding MenuSummary}"/>
+                                                            <TextBlock Style="{StaticResource StatusBadge}" Text="{Binding StatusText}"/>
+                                                        </StackPanel>
+                                                    </Button>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                        <Button Style="{StaticResource AddServiceButton}" Content="+ 배식 추가"
+                                                Command="{Binding DataContext.CreateServiceCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                CommandParameter="{Binding}"/>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+
+                <!-- ===== Editor Panel ===== -->
+                <Border Grid.Column="1" Style="{StaticResource EditorPanelBorder}">
+                    <TabControl Style="{StaticResource FlatTabControl}" SelectedIndex="{Binding SelectedMode}" ItemContainerStyle="{StaticResource FlatTabItem}">
+                        <TabItem Header="식단 작성">
+                            <ScrollViewer Style="{StaticResource ThinScrollViewer}" VerticalScrollBarVisibility="Auto">
+                                <StackPanel Margin="16,12">
+                                    <Grid Margin="0,0,0,8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="16"/>
+                                            <ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                                        <TextBlock Grid.Row="0" Grid.Column="0" Style="{StaticResource EditorFieldLabel}" Text="계획식수"/>
+                                        <TextBox Grid.Row="0" Grid.Column="1" Style="{StaticResource StandardTextBox}" Text="{Binding PlannedCount, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
+                                        <TextBlock Grid.Row="0" Grid.Column="3" Style="{StaticResource EditorFieldLabel}" Text="배식시간"/>
+                                        <TextBox Grid.Row="0" Grid.Column="4" Style="{StaticResource StandardTextBox}" Text="{Binding ServiceTime, UpdateSourceTrigger=PropertyChanged}" ToolTip="예: 1140 → 11:40" Margin="0,0,0,8"/>
+                                        <TextBlock Grid.Row="1" Grid.Column="0" Style="{StaticResource EditorFieldLabel}" Text="콘셉트"/>
+                                        <TextBox Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="4" Style="{StaticResource StandardTextBox}" Text="{Binding ConceptTitle, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
+                                        <TextBlock Grid.Row="2" Grid.Column="0" Style="{StaticResource EditorFieldLabel}" Text="비고"/>
+                                        <TextBox Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="4" Style="{StaticResource StandardTextBox}" Text="{Binding ServiceNote, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
+                                    </Grid>
+                                    <DockPanel Margin="0,4,0,12">
+                                        <Button DockPanel.Dock="Right" Style="{StaticResource PrimaryButton}" Command="{Binding SaveMealEditorCommand}" Margin="8,0,0,0">
+                                            <StackPanel Orientation="Horizontal">
+                                                <Path Style="{StaticResource IconPathSmall}" Data="{StaticResource IconSave}" Margin="0,0,6,0" Stroke="White"/>
+                                                <TextBlock Text="저장"/>
+                                            </StackPanel>
+                                        </Button>
+                                        <Button DockPanel.Dock="Left" Style="{StaticResource SubtleButton}" Command="{Binding OpenMenuPickerCommand}">
+                                            <StackPanel Orientation="Horizontal">
+                                                <Path Style="{StaticResource IconPathSmall}" Data="{StaticResource IconPlus}" Margin="0,0,6,0"/>
+                                                <TextBlock Text="메뉴 추가"/>
+                                            </StackPanel>
+                                        </Button>
+                                    </DockPanel>
+                                    <TextBlock Style="{StaticResource EditorSectionHeader}" Text="메뉴"/>
+                                    <ListBox Style="{StaticResource FlatListBox}" ItemsSource="{Binding EditorMenus}" SelectedItem="{Binding SelectedEditorMenu}" ItemContainerStyle="{StaticResource FlatListBoxItem}" Height="160">
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <DockPanel>
+                                                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Margin="8,0,0,0">
+                                                        <CheckBox Style="{StaticResource StandardCheckBox}" Content="대표" IsChecked="{Binding IsRepresentative}"/>
+                                                        <Button Style="{StaticResource IconButton}" Content="레시피" Margin="4,0,0,0" Command="{Binding DataContext.ChangeRecipeCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}"/>
+                                                        <Button Style="{StaticResource IconButton}" Content="↑" Margin="2,0,0,0" Command="{Binding DataContext.MoveMenuUpCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}"/>
+                                                        <Button Style="{StaticResource IconButton}" Content="↓" Margin="2,0,0,0" Command="{Binding DataContext.MoveMenuDownCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}"/>
+                                                        <Button Style="{StaticResource IconButton}" Content="삭제" Margin="2,0,0,0" Foreground="{StaticResource ErrorBrush}" Command="{Binding DataContext.DeleteMenuCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}"/>
+                                                    </StackPanel>
+                                                    <StackPanel>
+                                                        <TextBlock Style="{StaticResource BodyStrongText}" Text="{Binding Name}"/>
+                                                        <TextBlock Style="{StaticResource CaptionText}" Text="{Binding RecipeName}" TextTrimming="CharacterEllipsis"/>
+                                                    </StackPanel>
+                                                </DockPanel>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
+                                    <TextBlock Style="{StaticResource EditorSectionHeader}" Text="메뉴 비고"/>
+                                    <TextBox Style="{StaticResource StandardTextBox}" Text="{Binding SelectedEditorMenu.Note, UpdateSourceTrigger=PropertyChanged}"/>
+                                    <TextBlock Style="{StaticResource EditorSectionHeader}" Text="재료 (총 수량)"/>
+                                    <DataGrid Style="{StaticResource FlatDataGrid}" ItemsSource="{Binding SelectedEditorMenu.Ingredients}" CanUserAddRows="False" Height="160">
+                                        <DataGrid.Columns>
+                                            <DataGridTemplateColumn Header="재료명" Width="*">
+                                                <DataGridTemplateColumn.CellTemplate><DataTemplate><TextBlock Text="{Binding IngredientName}" Padding="8,0"/></DataTemplate></DataGridTemplateColumn.CellTemplate>
+                                                <DataGridTemplateColumn.CellEditingTemplate><DataTemplate><ComboBox IsEditable="True" IsTextSearchEnabled="True" ItemsSource="{Binding DataContext.IngredientOptions, RelativeSource={RelativeSource AncestorType=UserControl}}" DisplayMemberPath="Name" Text="{Binding IngredientName, UpdateSourceTrigger=PropertyChanged}"/></DataTemplate></DataGridTemplateColumn.CellEditingTemplate>
+                                            </DataGridTemplateColumn>
+                                            <DataGridTextColumn Header="총 수량" Width="80" Binding="{Binding QuantityTotal, UpdateSourceTrigger=PropertyChanged, StringFormat={}{0:0.###}}"/>
+                                            <DataGridTextColumn Header="100인" Width="70" Binding="{Binding QuantityPer100, UpdateSourceTrigger=PropertyChanged, StringFormat={}{0:0.###}}"/>
+                                            <DataGridTextColumn Header="단위" Width="50" Binding="{Binding Unit, UpdateSourceTrigger=PropertyChanged}"/>
+                                            <DataGridTemplateColumn Header="" Width="46">
+                                                <DataGridTemplateColumn.CellTemplate><DataTemplate><Button Style="{StaticResource IconButton}" Content="삭제" Foreground="{StaticResource ErrorBrush}" Command="{Binding DataContext.RemoveIngredientRowCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}"/></DataTemplate></DataGridTemplateColumn.CellTemplate>
+                                            </DataGridTemplateColumn>
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+                                    <Button Style="{StaticResource SubtleButton}" Content="+ 재료 추가" Command="{Binding AddIngredientRowCommand}" HorizontalAlignment="Left" Margin="0,8,0,0"/>
+                                </StackPanel>
+                            </ScrollViewer>
+                        </TabItem>
+                        <TabItem Header="조리지시">
+                            <ScrollViewer Style="{StaticResource ThinScrollViewer}" VerticalScrollBarVisibility="Auto">
+                                <StackPanel Margin="16,12">
+                                    <ItemsControl ItemsSource="{Binding CookingRows}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Style="{StaticResource CookingRowBorder}">
+                                                    <StackPanel>
+                                                        <TextBlock Style="{StaticResource BodyStrongText}" Text="{Binding Name}" Margin="0,0,0,6"/>
+                                                        <TextBlock Style="{StaticResource CaptionText}" Text="조리지시"/>
+                                                        <TextBox Style="{StaticResource StandardTextBox}" TextWrapping="Wrap" Text="{Binding CookingInstruction, UpdateSourceTrigger=PropertyChanged}" MinHeight="40" Margin="0,2,0,8"/>
+                                                        <TextBlock Style="{StaticResource CaptionText}" Text="조리비고"/>
+                                                        <TextBox Style="{StaticResource StandardTextBox}" TextWrapping="Wrap" Text="{Binding CookingNote, UpdateSourceTrigger=PropertyChanged}" MinHeight="30" Margin="0,2,0,0"/>
+                                                    </StackPanel>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                    <Button Style="{StaticResource PrimaryButton}" Command="{Binding SaveCookingCommand}" HorizontalAlignment="Right" Margin="0,8,0,0">
+                                        <StackPanel Orientation="Horizontal">
+                                            <Path Style="{StaticResource IconPathSmall}" Data="{StaticResource IconSave}" Margin="0,0,6,0" Stroke="White"/>
+                                            <TextBlock Text="저장"/>
+                                        </StackPanel>
+                                    </Button>
+                                </StackPanel>
+                            </ScrollViewer>
+                        </TabItem>
+                        <TabItem Header="보존식">
+                            <ScrollViewer Style="{StaticResource ThinScrollViewer}" VerticalScrollBarVisibility="Auto">
+                                <StackPanel Margin="16,12">
+                                    <Grid Margin="0,0,0,8">
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="16"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                                        <TextBlock Grid.Row="0" Grid.Column="0" Style="{StaticResource EditorFieldLabel}" Text="관리자"/>
+                                        <TextBox Grid.Row="0" Grid.Column="1" Style="{StaticResource StandardTextBox}" Text="{Binding PreservationManager, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
+                                        <TextBlock Grid.Row="0" Grid.Column="3" Style="{StaticResource EditorFieldLabel}" Text="냉동고 온도"/>
+                                        <TextBox Grid.Row="0" Grid.Column="4" Style="{StaticResource StandardTextBox}" Text="{Binding PreservationFreezerTemp, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
+                                        <TextBlock Grid.Row="1" Grid.Column="0" Style="{StaticResource EditorFieldLabel}" Text="채수자"/>
+                                        <TextBox Grid.Row="1" Grid.Column="1" Style="{StaticResource StandardTextBox}" Text="{Binding PreservationCollector, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
+                                        <TextBlock Grid.Row="1" Grid.Column="3" Style="{StaticResource EditorFieldLabel}" Text="채수시간"/>
+                                        <TextBox Grid.Row="1" Grid.Column="4" Style="{StaticResource StandardTextBox}" Text="{Binding PreservationCollectionTime, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
+                                        <TextBlock Grid.Row="2" Grid.Column="0" Style="{StaticResource EditorFieldLabel}" Text="채수일시"/>
+                                        <DatePicker Grid.Row="2" Grid.Column="1" Style="{StaticResource StandardDatePicker}" SelectedDate="{Binding PreservationCollectedAt}" Margin="0,0,0,8"/>
+                                        <TextBlock Grid.Row="2" Grid.Column="3" Style="{StaticResource EditorFieldLabel}" Text="폐기일시"/>
+                                        <DatePicker Grid.Row="2" Grid.Column="4" Style="{StaticResource StandardDatePicker}" SelectedDate="{Binding PreservationDisposalAt}" Margin="0,0,0,8"/>
+                                        <TextBlock Grid.Row="3" Grid.Column="0" Style="{StaticResource EditorFieldLabel}" Text="비고"/>
+                                        <TextBox Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="4" Style="{StaticResource StandardTextBox}" Text="{Binding PreservationNote, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
+                                    </Grid>
+                                    <CheckBox Style="{StaticResource StandardCheckBox}" Content="완료" IsChecked="{Binding PreservationCompleted}" Margin="0,0,0,12"/>
+                                    <Button Style="{StaticResource PrimaryButton}" Command="{Binding SavePreservationCommand}" HorizontalAlignment="Right">
+                                        <StackPanel Orientation="Horizontal">
+                                            <Path Style="{StaticResource IconPathSmall}" Data="{StaticResource IconSave}" Margin="0,0,6,0" Stroke="White"/>
+                                            <TextBlock Text="저장"/>
+                                        </StackPanel>
+                                    </Button>
+                                </StackPanel>
+                            </ScrollViewer>
+                        </TabItem>
+                        <TabItem Header="실제 식수">
+                            <StackPanel Margin="16,12">
+                                <Grid Margin="0,0,0,8">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Style="{StaticResource EditorFieldLabel}" Text="실제 식수"/>
+                                    <TextBox Grid.Row="0" Grid.Column="1" Style="{StaticResource StandardTextBox}" Text="{Binding ActualCount, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Style="{StaticResource EditorFieldLabel}" Text="비고"/>
+                                    <TextBox Grid.Row="1" Grid.Column="1" Style="{StaticResource StandardTextBox}" Text="{Binding ActualNote, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
+                                </Grid>
+                                <Button Style="{StaticResource PrimaryButton}" Command="{Binding SaveActualCommand}" HorizontalAlignment="Right">
+                                <StackPanel Orientation="Horizontal">
+                                    <Path Style="{StaticResource IconPathSmall}" Data="{StaticResource IconSave}" Margin="0,0,6,0" Stroke="White"/>
+                                    <TextBlock Text="저장"/>
+                                </StackPanel>
+                            </Button>
+                            </StackPanel>
+                        </TabItem>
+                    </TabControl>
+                </Border>
+            </Grid>
+        </Grid>
+
+        <!-- ================================================================ -->
+        <!-- ==================== FOCUS MODE LAYOUT ======================== -->
+        <!-- ================================================================ -->
+        <Grid Visibility="{Binding IsFocusMode, Converter={StaticResource BoolToVis}}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- ===== Focus Toolbar ===== -->
+            <Border Grid.Row="0" Style="{StaticResource FocusToolbarBorder}">
+                <DockPanel>
+                    <Button DockPanel.Dock="Right" Style="{StaticResource SubtleButton}" Command="{Binding ToggleFocusCommand}" Margin="12,0,0,0">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Style="{StaticResource IconPathSmall}" Data="{StaticResource IconClose}" Margin="0,0,6,0"/>
+                            <TextBlock Text="집중 모드 종료"/>
+                        </StackPanel>
+                    </Button>
+                    <TextBlock DockPanel.Dock="Right" Style="{StaticResource SaveStatusBadge}" Text="{Binding SaveStatusText}" Foreground="{Binding SaveStatusColor, Converter={StaticResource SaveStatusBrush}}" Margin="16,0,0,0"/>
+                    <TextBlock Style="{StaticResource SectionTitleText}" Text="{Binding PeriodLabel}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    <StackPanel Orientation="Horizontal">
+                        <Button Style="{StaticResource NavArrowButton}" Command="{Binding PrevWeekCommand}" Content="‹ 이전"/>
+                        <Button Style="{StaticResource NavArrowButton}" Command="{Binding NextWeekCommand}" Content="다음 ›" Margin="4,0,0,0"/>
+                    </StackPanel>
+                    <Button Style="{StaticResource SubtleButton}" Command="{Binding TodayCommand}" Content="이번 주" Margin="12,0,0,0"/>
+                </DockPanel>
+            </Border>
+
+            <!-- ===== Focus Content ===== -->
+            <Grid Grid.Row="1">
+                <ScrollViewer Style="{StaticResource ThinScrollViewer}" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel Margin="8,0,8,16">
+
+                        <!-- Date Header Row -->
+                        <ItemsControl ItemsSource="{Binding Days}">
+                            <ItemsControl.ItemsPanel><ItemsPanelTemplate><UniformGrid Columns="5"/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Style="{StaticResource FocusDayHeaderCell}">
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding Weekday}" Style="{StaticResource BodyStrongText}" HorizontalAlignment="Center"/>
+                                            <TextBlock Text="{Binding DateLabel}" Style="{StaticResource CaptionText}" HorizontalAlignment="Center" Margin="0,2,0,0"/>
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <!-- 중식 Section -->
+                        <TextBlock Style="{StaticResource FocusMealSectionHeader}" Text="중식"/>
+                        <ItemsControl ItemsSource="{Binding Days}">
+                            <ItemsControl.ItemsPanel><ItemsPanelTemplate><UniformGrid Columns="5"/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Style="{StaticResource FocusMenuCell}" MinHeight="120">
+                                        <StackPanel>
+                                            <StackPanel Visibility="{Binding LunchService, Converter={StaticResource NullToVis}}">
+                                                <TextBlock Style="{StaticResource CaptionText}" Text="{Binding LunchService.PlannedCount, StringFormat=식수 {0}}" Margin="0,0,0,6"/>
+                                                <TextBlock Style="{StaticResource BodyText}" Text="{Binding LunchService.MenuSummary}" TextWrapping="Wrap"/>
+                                                <TextBlock Style="{StaticResource StatusBadge}" Text="{Binding LunchService.StatusText}"/>
+                                                <Button Style="{StaticResource FocusAddMenuButton}" Content="편집" Command="{Binding DataContext.SelectServiceCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding LunchService}"/>
+                                            </StackPanel>
+                                            <StackPanel Visibility="{Binding LunchService, Converter={StaticResource NullToCollapsedVis}}">
+                                                <TextBlock Style="{StaticResource EmptyStateText}" Text="메뉴 없음"/>
+                                                <Button Style="{StaticResource FocusAddMenuButton}" Command="{Binding DataContext.CreateServiceCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}">
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <Path Style="{StaticResource IconPathSmall}" Data="{StaticResource IconPlus}" Margin="0,0,4,0"/>
+                                                        <TextBlock Text="메뉴 추가"/>
+                                                    </StackPanel>
+                                                </Button>
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <!-- 석식 Section -->
+                        <TextBlock Style="{StaticResource FocusMealSectionHeader}" Text="석식"/>
+                        <ItemsControl ItemsSource="{Binding Days}">
+                            <ItemsControl.ItemsPanel><ItemsPanelTemplate><UniformGrid Columns="5"/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Style="{StaticResource FocusMenuCell}" MinHeight="120">
+                                        <StackPanel>
+                                            <StackPanel Visibility="{Binding DinnerService, Converter={StaticResource NullToVis}}">
+                                                <TextBlock Style="{StaticResource CaptionText}" Text="{Binding DinnerService.PlannedCount, StringFormat=식수 {0}}" Margin="0,0,0,6"/>
+                                                <TextBlock Style="{StaticResource BodyText}" Text="{Binding DinnerService.MenuSummary}" TextWrapping="Wrap"/>
+                                                <TextBlock Style="{StaticResource StatusBadge}" Text="{Binding DinnerService.StatusText}"/>
+                                                <Button Style="{StaticResource FocusAddMenuButton}" Content="편집" Command="{Binding DataContext.SelectServiceCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding DinnerService}"/>
+                                            </StackPanel>
+                                            <StackPanel Visibility="{Binding DinnerService, Converter={StaticResource NullToCollapsedVis}}">
+                                                <TextBlock Style="{StaticResource EmptyStateText}" Text="메뉴 없음"/>
+                                                <Button Style="{StaticResource FocusAddMenuButton}" Command="{Binding DataContext.CreateServiceCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}">
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <Path Style="{StaticResource IconPathSmall}" Data="{StaticResource IconPlus}" Margin="0,0,4,0"/>
+                                                        <TextBlock Text="메뉴 추가"/>
+                                                    </StackPanel>
+                                                </Button>
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                    </StackPanel>
+                </ScrollViewer>
+
+                <!-- ===== Slide-out Editor Overlay ===== -->
+                <Border Style="{StaticResource FocusEditorOverlay}" HorizontalAlignment="Right"
+                        Visibility="{Binding SelectedService, Converter={StaticResource NullToVis}}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <Border Grid.Row="0" Style="{StaticResource FocusDayHeaderCell}">
+                            <DockPanel>
+                                <Button DockPanel.Dock="Right" Style="{StaticResource IconButton}" Content="✕" Command="{Binding CloseEditorCommand}" Margin="8,0,0,0"/>
+                                <TextBlock Style="{StaticResource SectionTitleText}" Text="편집" VerticalAlignment="Center"/>
+                            </DockPanel>
+                        </Border>
+                        <TabControl Grid.Row="1" Style="{StaticResource FlatTabControl}" SelectedIndex="{Binding SelectedMode}" ItemContainerStyle="{StaticResource FlatTabItem}">
+                            <TabItem Header="식단">
+                                <ScrollViewer Style="{StaticResource ThinScrollViewer}" VerticalScrollBarVisibility="Auto">
+                                    <StackPanel Margin="16,12">
+                                        <Grid Margin="0,0,0,8">
+                                            <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="16"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                                            <TextBlock Grid.Row="0" Grid.Column="0" Style="{StaticResource EditorFieldLabel}" Text="계획식수"/>
+                                            <TextBox Grid.Row="0" Grid.Column="1" Style="{StaticResource StandardTextBox}" Text="{Binding PlannedCount, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
+                                            <TextBlock Grid.Row="0" Grid.Column="3" Style="{StaticResource EditorFieldLabel}" Text="배식시간"/>
+                                            <TextBox Grid.Row="0" Grid.Column="4" Style="{StaticResource StandardTextBox}" Text="{Binding ServiceTime, UpdateSourceTrigger=PropertyChanged}" ToolTip="예: 1140 → 11:40" Margin="0,0,0,8"/>
+                                            <TextBlock Grid.Row="1" Grid.Column="0" Style="{StaticResource EditorFieldLabel}" Text="콘셉트"/>
+                                            <TextBox Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="4" Style="{StaticResource StandardTextBox}" Text="{Binding ConceptTitle, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
+                                            <TextBlock Grid.Row="2" Grid.Column="0" Style="{StaticResource EditorFieldLabel}" Text="비고"/>
+                                            <TextBox Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="4" Style="{StaticResource StandardTextBox}" Text="{Binding ServiceNote, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
+                                        </Grid>
+                                        <DockPanel Margin="0,4,0,12">
+                                            <Button DockPanel.Dock="Right" Style="{StaticResource PrimaryButton}" Command="{Binding SaveMealEditorCommand}" Margin="8,0,0,0">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Path Style="{StaticResource IconPathSmall}" Data="{StaticResource IconSave}" Margin="0,0,6,0" Stroke="White"/>
+                                                    <TextBlock Text="저장"/>
+                                                </StackPanel>
+                                            </Button>
+                                            <Button DockPanel.Dock="Left" Style="{StaticResource SubtleButton}" Command="{Binding OpenMenuPickerCommand}">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Path Style="{StaticResource IconPathSmall}" Data="{StaticResource IconPlus}" Margin="0,0,6,0"/>
+                                                    <TextBlock Text="메뉴 추가"/>
+                                                </StackPanel>
+                                            </Button>
+                                        </DockPanel>
+                                        <TextBlock Style="{StaticResource EditorSectionHeader}" Text="메뉴"/>
+                                        <ListBox Style="{StaticResource FlatListBox}" ItemsSource="{Binding EditorMenus}" SelectedItem="{Binding SelectedEditorMenu}" ItemContainerStyle="{StaticResource FlatListBoxItem}" Height="140">
+                                            <ListBox.ItemTemplate>
+                                                <DataTemplate>
+                                                    <DockPanel>
+                                                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Margin="8,0,0,0">
+                                                            <CheckBox Style="{StaticResource StandardCheckBox}" Content="대표" IsChecked="{Binding IsRepresentative}"/>
+                                                            <Button Style="{StaticResource IconButton}" Content="레시피" Margin="4,0,0,0" Command="{Binding DataContext.ChangeRecipeCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}"/>
+                                                            <Button Style="{StaticResource IconButton}" Content="↑" Margin="2,0,0,0" Command="{Binding DataContext.MoveMenuUpCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}"/>
+                                                            <Button Style="{StaticResource IconButton}" Content="↓" Margin="2,0,0,0" Command="{Binding DataContext.MoveMenuDownCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}"/>
+                                                            <Button Style="{StaticResource IconButton}" Content="삭제" Margin="2,0,0,0" Foreground="{StaticResource ErrorBrush}" Command="{Binding DataContext.DeleteMenuCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}"/>
+                                                        </StackPanel>
+                                                        <StackPanel>
+                                                            <TextBlock Style="{StaticResource BodyStrongText}" Text="{Binding Name}"/>
+                                                            <TextBlock Style="{StaticResource CaptionText}" Text="{Binding RecipeName}" TextTrimming="CharacterEllipsis"/>
+                                                        </StackPanel>
+                                                    </DockPanel>
+                                                </DataTemplate>
+                                            </ListBox.ItemTemplate>
+                                        </ListBox>
+                                        <TextBlock Style="{StaticResource EditorSectionHeader}" Text="메뉴 비고"/>
+                                        <TextBox Style="{StaticResource StandardTextBox}" Text="{Binding SelectedEditorMenu.Note, UpdateSourceTrigger=PropertyChanged}"/>
+                                        <TextBlock Style="{StaticResource EditorSectionHeader}" Text="재료 (총 수량)"/>
+                                        <DataGrid Style="{StaticResource FlatDataGrid}" ItemsSource="{Binding SelectedEditorMenu.Ingredients}" CanUserAddRows="False" Height="140">
+                                            <DataGrid.Columns>
+                                                <DataGridTemplateColumn Header="재료명" Width="*">
+                                                    <DataGridTemplateColumn.CellTemplate><DataTemplate><TextBlock Text="{Binding IngredientName}" Padding="8,0"/></DataTemplate></DataGridTemplateColumn.CellTemplate>
+                                                    <DataGridTemplateColumn.CellEditingTemplate><DataTemplate><ComboBox IsEditable="True" IsTextSearchEnabled="True" ItemsSource="{Binding DataContext.IngredientOptions, RelativeSource={RelativeSource AncestorType=UserControl}}" DisplayMemberPath="Name" Text="{Binding IngredientName, UpdateSourceTrigger=PropertyChanged}"/></DataTemplate></DataGridTemplateColumn.CellEditingTemplate>
+                                                </DataGridTemplateColumn>
+                                                <DataGridTextColumn Header="총 수량" Width="80" Binding="{Binding QuantityTotal, UpdateSourceTrigger=PropertyChanged, StringFormat={}{0:0.###}}"/>
+                                                <DataGridTextColumn Header="100인" Width="70" Binding="{Binding QuantityPer100, UpdateSourceTrigger=PropertyChanged, StringFormat={}{0:0.###}}"/>
+                                                <DataGridTextColumn Header="단위" Width="50" Binding="{Binding Unit, UpdateSourceTrigger=PropertyChanged}"/>
+                                                <DataGridTemplateColumn Header="" Width="46">
+                                                    <DataGridTemplateColumn.CellTemplate><DataTemplate><Button Style="{StaticResource IconButton}" Content="삭제" Foreground="{StaticResource ErrorBrush}" Command="{Binding DataContext.RemoveIngredientRowCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}"/></DataTemplate></DataGridTemplateColumn.CellTemplate>
+                                                </DataGridTemplateColumn>
+                                            </DataGrid.Columns>
+                                        </DataGrid>
+                                        <Button Style="{StaticResource SubtleButton}" Content="+ 재료 추가" Command="{Binding AddIngredientRowCommand}" HorizontalAlignment="Left" Margin="0,8,0,0"/>
+                                    </StackPanel>
+                                </ScrollViewer>
+                            </TabItem>
+                            <TabItem Header="조리지시">
+                                <ScrollViewer Style="{StaticResource ThinScrollViewer}" VerticalScrollBarVisibility="Auto">
+                                    <StackPanel Margin="16,12">
+                                        <ItemsControl ItemsSource="{Binding CookingRows}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Border Style="{StaticResource CookingRowBorder}">
+                                                        <StackPanel>
+                                                            <TextBlock Style="{StaticResource BodyStrongText}" Text="{Binding Name}" Margin="0,0,0,6"/>
+                                                            <TextBlock Style="{StaticResource CaptionText}" Text="조리지시"/>
+                                                            <TextBox Style="{StaticResource StandardTextBox}" TextWrapping="Wrap" Text="{Binding CookingInstruction, UpdateSourceTrigger=PropertyChanged}" MinHeight="40" Margin="0,2,0,8"/>
+                                                            <TextBlock Style="{StaticResource CaptionText}" Text="조리비고"/>
+                                                            <TextBox Style="{StaticResource StandardTextBox}" TextWrapping="Wrap" Text="{Binding CookingNote, UpdateSourceTrigger=PropertyChanged}" MinHeight="30" Margin="0,2,0,0"/>
+                                                        </StackPanel>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                        <Button Style="{StaticResource PrimaryButton}" Command="{Binding SaveCookingCommand}" HorizontalAlignment="Right" Margin="0,8,0,0">
+                                        <StackPanel Orientation="Horizontal">
+                                            <Path Style="{StaticResource IconPathSmall}" Data="{StaticResource IconSave}" Margin="0,0,6,0" Stroke="White"/>
+                                            <TextBlock Text="저장"/>
+                                        </StackPanel>
+                                    </Button>
+                                    </StackPanel>
+                                </ScrollViewer>
+                            </TabItem>
+                            <TabItem Header="보존식">
+                                <ScrollViewer Style="{StaticResource ThinScrollViewer}" VerticalScrollBarVisibility="Auto">
+                                    <StackPanel Margin="16,12">
+                                        <Grid Margin="0,0,0,8">
+                                            <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="16"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                                            <TextBlock Grid.Row="0" Grid.Column="0" Style="{StaticResource EditorFieldLabel}" Text="관리자"/>
+                                            <TextBox Grid.Row="0" Grid.Column="1" Style="{StaticResource StandardTextBox}" Text="{Binding PreservationManager, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
+                                            <TextBlock Grid.Row="0" Grid.Column="3" Style="{StaticResource EditorFieldLabel}" Text="냉동고 온도"/>
+                                            <TextBox Grid.Row="0" Grid.Column="4" Style="{StaticResource StandardTextBox}" Text="{Binding PreservationFreezerTemp, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
+                                            <TextBlock Grid.Row="1" Grid.Column="0" Style="{StaticResource EditorFieldLabel}" Text="채수자"/>
+                                            <TextBox Grid.Row="1" Grid.Column="1" Style="{StaticResource StandardTextBox}" Text="{Binding PreservationCollector, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
+                                            <TextBlock Grid.Row="1" Grid.Column="3" Style="{StaticResource EditorFieldLabel}" Text="채수시간"/>
+                                            <TextBox Grid.Row="1" Grid.Column="4" Style="{StaticResource StandardTextBox}" Text="{Binding PreservationCollectionTime, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
+                                            <TextBlock Grid.Row="2" Grid.Column="0" Style="{StaticResource EditorFieldLabel}" Text="채수일시"/>
+                                            <DatePicker Grid.Row="2" Grid.Column="1" Style="{StaticResource StandardDatePicker}" SelectedDate="{Binding PreservationCollectedAt}" Margin="0,0,0,8"/>
+                                            <TextBlock Grid.Row="2" Grid.Column="3" Style="{StaticResource EditorFieldLabel}" Text="폐기일시"/>
+                                            <DatePicker Grid.Row="2" Grid.Column="4" Style="{StaticResource StandardDatePicker}" SelectedDate="{Binding PreservationDisposalAt}" Margin="0,0,0,8"/>
+                                            <TextBlock Grid.Row="3" Grid.Column="0" Style="{StaticResource EditorFieldLabel}" Text="비고"/>
+                                            <TextBox Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="4" Style="{StaticResource StandardTextBox}" Text="{Binding PreservationNote, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
+                                        </Grid>
+                                        <CheckBox Style="{StaticResource StandardCheckBox}" Content="완료" IsChecked="{Binding PreservationCompleted}" Margin="0,0,0,12"/>
+                                        <Button Style="{StaticResource PrimaryButton}" Command="{Binding SavePreservationCommand}" HorizontalAlignment="Right">
+                                        <StackPanel Orientation="Horizontal">
+                                            <Path Style="{StaticResource IconPathSmall}" Data="{StaticResource IconSave}" Margin="0,0,6,0" Stroke="White"/>
+                                            <TextBlock Text="저장"/>
+                                        </StackPanel>
+                                    </Button>
+                                    </StackPanel>
+                                </ScrollViewer>
+                            </TabItem>
+                            <TabItem Header="실제 식수">
+                                <StackPanel Margin="16,12">
+                                    <Grid Margin="0,0,0,8">
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                                        <TextBlock Grid.Row="0" Grid.Column="0" Style="{StaticResource EditorFieldLabel}" Text="실제 식수"/>
+                                        <TextBox Grid.Row="0" Grid.Column="1" Style="{StaticResource StandardTextBox}" Text="{Binding ActualCount, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
+                                        <TextBlock Grid.Row="1" Grid.Column="0" Style="{StaticResource EditorFieldLabel}" Text="비고"/>
+                                        <TextBox Grid.Row="1" Grid.Column="1" Style="{StaticResource StandardTextBox}" Text="{Binding ActualNote, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8"/>
+                                    </Grid>
+                                    <Button Style="{StaticResource PrimaryButton}" Command="{Binding SaveActualCommand}" HorizontalAlignment="Right">
+                                <StackPanel Orientation="Horizontal">
+                                    <Path Style="{StaticResource IconPathSmall}" Data="{StaticResource IconSave}" Margin="0,0,6,0" Stroke="White"/>
+                                    <TextBlock Text="저장"/>
+                                </StackPanel>
+                            </Button>
+                                </StackPanel>
+                            </TabItem>
+                        </TabControl>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Grid>
+
+    </Grid>
+</UserControl>

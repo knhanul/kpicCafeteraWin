@@ -4,6 +4,7 @@
     <Project Path="src/KpicCafeteria.Desktop/KpicCafeteria.Desktop.csproj" />
     <Project Path="src/KpicCafeteria.Documents/KpicCafeteria.Documents.csproj" />
     <Project Path="src/KpicCafeteria.Domain/KpicCafeteria.Domain.csproj" />
+    <Project Path="src/KpicCafeteria.HancomWorker/KpicCafeteria.HancomWorker.csproj" />
     <Project Path="src/KpicCafeteria.Infrastructure/KpicCafeteria.Infrastructure.csproj" />
   </Folder>
   <Folder Name="/tests/">

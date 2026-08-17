@@ -5,8 +5,115 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:KpicCafeteria.Desktop"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="Kpic Cafeteria" Height="720" Width="1100" WindowStartupLocation="CenterScreen">
     <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition x:Name="NavColumn" Width="180"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
 
+        <!-- 좌측 네비게이션 -->
+        <Border Grid.Column="0" Background="{StaticResource SurfaceSecondaryBrush}" BorderBrush="{StaticResource BorderSubtleBrush}" BorderThickness="0,0,1,0">
+            <DockPanel Margin="0,12,0,0">
+                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="14,0,14,16">
+                    <Path Style="{StaticResource IconPathLarge}" Data="{StaticResource IconDashboard}" Stroke="{StaticResource AccentBrush}" Width="18" Height="18" Margin="0,0,8,0"/>
+                    <TextBlock Style="{StaticResource NavBrandTitle}" Margin="0"/>
+                </StackPanel>
+                <ScrollViewer DockPanel.Dock="Top" VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel>
+                        <Button x:Name="WorkspaceNavButton" Click="OnWorkspaceNav" Style="{StaticResource NavButton}" Tag="Selected">
+                            <StackPanel Orientation="Horizontal">
+                                <Path Style="{StaticResource IconPath}" Data="{StaticResource IconCalendar}" Margin="0,0,8,0"/>
+                                <TextBlock Text="주간 급식 운영"/>
+                            </StackPanel>
+                        </Button>
+                        <Button x:Name="OrdersNavButton" Click="OnOrdersNav" Style="{StaticResource NavButton}">
+                            <StackPanel Orientation="Horizontal">
+                                <Path Style="{StaticResource IconPath}" Data="{StaticResource IconCart}" Margin="0,0,8,0"/>
+                                <TextBlock Text="발주 관리"/>
+                            </StackPanel>
+                        </Button>
+
+                        <TextBlock Style="{StaticResource NavGroupLabel}" Text="문서"/>
+                        <Button x:Name="DocumentOutputNavButton" Click="OnDocumentOutputNav" Style="{StaticResource NavButton}">
+                            <StackPanel Orientation="Horizontal">
+                                <Path Style="{StaticResource IconPath}" Data="{StaticResource IconPrint}" Margin="0,0,8,0"/>
+                                <TextBlock Text="문서 출력"/>
+                            </StackPanel>
+                        </Button>
+                        <Button x:Name="DocumentTemplatesNavButton" Click="OnDocumentTemplatesNav" Style="{StaticResource NavButton}">
+                            <StackPanel Orientation="Horizontal">
+                                <Path Style="{StaticResource IconPath}" Data="{StaticResource IconTemplate}" Margin="0,0,8,0"/>
+                                <TextBlock Text="문서 양식"/>
+                            </StackPanel>
+                        </Button>
+
+                        <TextBlock Style="{StaticResource NavGroupLabel}" Text="기준정보"/>
+                        <Button x:Name="MenuRecipeNavButton" Click="OnMenuRecipeNav" Style="{StaticResource NavButton}">
+                            <StackPanel Orientation="Horizontal">
+                                <Path Style="{StaticResource IconPath}" Data="{StaticResource IconFoodList}" Margin="0,0,8,0"/>
+                                <TextBlock Text="메뉴·레시피"/>
+                            </StackPanel>
+                        </Button>
+                        <Button x:Name="IngredientNavButton" Click="OnIngredientNav" Style="{StaticResource NavButton}">
+                            <StackPanel Orientation="Horizontal">
+                                <Path Style="{StaticResource IconPath}" Data="{StaticResource IconBox}" Margin="0,0,8,0"/>
+                                <TextBlock Text="식재료"/>
+                            </StackPanel>
+                        </Button>
+                        <Button x:Name="MealDefaultsNavButton" Click="OnMealDefaultsNav" Style="{StaticResource NavButton}">
+                            <StackPanel Orientation="Horizontal">
+                                <Path Style="{StaticResource IconPath}" Data="{StaticResource IconSettings}" Margin="0,0,8,0"/>
+                                <TextBlock Text="배식 기본값"/>
+                            </StackPanel>
+                        </Button>
+
+                        <TextBlock Style="{StaticResource NavGroupLabel}" Text="통계"/>
+                        <Button x:Name="DashboardNavButton" Click="OnDashboardNav" Style="{StaticResource NavButton}">
+                            <StackPanel Orientation="Horizontal">
+                                <Path Style="{StaticResource IconPath}" Data="{StaticResource IconDashboard}" Margin="0,0,8,0"/>
+                                <TextBlock Text="운영 대시보드"/>
+                            </StackPanel>
+                        </Button>
+                        <Button x:Name="MealStatisticsNavButton" Click="OnMealStatisticsNav" Style="{StaticResource NavButton}">
+                            <StackPanel Orientation="Horizontal">
+                                <Path Style="{StaticResource IconPath}" Data="{StaticResource IconPeople}" Margin="0,0,8,0"/>
+                                <TextBlock Text="식수 통계"/>
+                            </StackPanel>
+                        </Button>
+                        <Button x:Name="MenuStatisticsNavButton" Click="OnMenuStatisticsNav" Style="{StaticResource NavButton}">
+                            <StackPanel Orientation="Horizontal">
+                                <Path Style="{StaticResource IconPath}" Data="{StaticResource IconChart}" Margin="0,0,8,0"/>
+                                <TextBlock Text="메뉴 통계"/>
+                            </StackPanel>
+                        </Button>
+                        <Button x:Name="IngredientStatisticsNavButton" Click="OnIngredientStatisticsNav" Style="{StaticResource NavButton}">
+                            <StackPanel Orientation="Horizontal">
+                                <Path Style="{StaticResource IconPath}" Data="{StaticResource IconBarChart}" Margin="0,0,8,0"/>
+                                <TextBlock Text="식재료 통계"/>
+                            </StackPanel>
+                        </Button>
+                        <Button x:Name="OperationsStatisticsNavButton" Click="OnOperationsStatisticsNav" Style="{StaticResource NavButton}">
+                            <StackPanel Orientation="Horizontal">
+                                <Path Style="{StaticResource IconPath}" Data="{StaticResource IconHistory}" Margin="0,0,8,0"/>
+                                <TextBlock Text="운영 기록 통계"/>
+                            </StackPanel>
+                        </Button>
+
+                        <TextBlock Style="{StaticResource NavGroupLabel}" Text="데이터 관리"/>
+                        <Button x:Name="DataManagementNavButton" Click="OnDataManagementNav" Style="{StaticResource NavButton}">
+                            <StackPanel Orientation="Horizontal">
+                                <Path Style="{StaticResource IconPath}" Data="{StaticResource IconDatabase}" Margin="0,0,8,0"/>
+                                <TextBlock Text="데이터 관리"/>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </ScrollViewer>
+                <TextBlock x:Name="DatabaseStatusText" FontFamily="{StaticResource AppFontFamily}" FontSize="11" Foreground="{StaticResource TextDisabledBrush}" TextWrapping="Wrap" DockPanel.Dock="Bottom" Margin="12,8"/>
+            </DockPanel>
+        </Border>
+
+        <!-- 콘텐츠 -->
+        <ContentControl x:Name="ContentHost" Grid.Column="1"/>
     </Grid>
 </Window>

@@ -4,6 +4,13 @@
     <ProjectReference Include="..\KpicCafeteria.Application\KpicCafeteria.Application.csproj" />
     <ProjectReference Include="..\KpicCafeteria.Infrastructure\KpicCafeteria.Infrastructure.csproj" />
     <ProjectReference Include="..\KpicCafeteria.Documents\KpicCafeteria.Documents.csproj" />
+    <ProjectReference Include="..\KpicCafeteria.HancomWorker\KpicCafeteria.HancomWorker.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.11" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.11" />
   </ItemGroup>
 
   <PropertyGroup>

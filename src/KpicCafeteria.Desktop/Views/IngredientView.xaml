@@ -1,0 +1,217 @@
+<UserControl x:Class="KpicCafeteria.Desktop.Views.IngredientView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:KpicCafeteria.Desktop.ViewModels">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+        <vm:NullToVisibilityConverter x:Key="NullToVis"/>
+        <vm:NullToCollapsedVisibilityConverter x:Key="NullToCollapsedVis"/>
+    </UserControl.Resources>
+
+    <Grid Background="{StaticResource BackgroundBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- ===== Header ===== -->
+        <Border Grid.Row="0" Style="{StaticResource ToolbarBorder}">
+            <DockPanel>
+                <Button DockPanel.Dock="Right" Style="{StaticResource PrimaryButton}"
+                        Command="{Binding NewIngredientCommand}" Margin="12,0,0,0">
+                    <StackPanel Orientation="Horizontal">
+                        <Path Style="{StaticResource IconPathSmall}" Data="{StaticResource IconPlus}" Margin="0,0,6,0" Stroke="White"/>
+                        <TextBlock Text="새 재료"/>
+                    </StackPanel>
+                </Button>
+                <TextBlock Style="{StaticResource PageTitleText}" Text="식재료"
+                           VerticalAlignment="Center"/>
+            </DockPanel>
+        </Border>
+
+        <!-- ===== Main Content: Master List + Detail ===== -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="280" MinWidth="220"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- ===== Master List ===== -->
+            <Border Grid.Column="0" Style="{StaticResource MasterListContainer}">
+                <DockPanel>
+                    <!-- Search -->
+                    <StackPanel DockPanel.Dock="Top" Margin="12,12,12,8">
+                        <TextBox Style="{StaticResource StandardTextBox}"
+                                 Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}"
+                                 ToolTip="재료명/별칭 검색"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                            <ComboBox Style="{StaticResource StandardComboBox}" Width="130"
+                                      ItemsSource="{Binding StatGroups}"
+                                      SelectedItem="{Binding StatGroupFilter}"
+                                      ToolTip="통계분석군 필터"/>
+                            <CheckBox Style="{StaticResource StandardCheckBox}" Content="미사용 포함"
+                                      IsChecked="{Binding ShowInactive}" Margin="8,0,0,0"/>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- Ingredient List -->
+                    <ListBox ItemsSource="{Binding Ingredients}" SelectedItem="{Binding SelectedIngredient}"
+                             Background="Transparent" BorderThickness="0"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                             ItemContainerStyle="{StaticResource MasterListItem}"
+                             VirtualizingPanel.IsVirtualizing="True"
+                             VirtualizingPanel.VirtualizationMode="Recycling">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel>
+                                    <TextBlock Text="{Binding Name}" Style="{StaticResource BodyStrongText}"/>
+                                    <TextBlock Text="{Binding DefaultUnit, StringFormat='단위: {0}'}"
+                                               Style="{StaticResource CaptionText}" Margin="0,2,0,0"
+                                               Visibility="{Binding DefaultUnit, Converter={StaticResource NullToCollapsedVis}}"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+            </Border>
+
+            <!-- ===== Detail Panel ===== -->
+            <Grid Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Detail Content (scrollable) -->
+                <ScrollViewer Grid.Row="0" Style="{StaticResource ThinScrollViewer}"
+                              VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="24,16">
+
+                        <!-- Empty state -->
+                        <StackPanel Visibility="{Binding SelectedIngredient, Converter={StaticResource NullToCollapsedVis}}">
+                            <TextBlock Style="{StaticResource EmptyStateText}" Text="식재료를 선택하면 상세 정보가 표시됩니다"/>
+                        </StackPanel>
+
+                        <!-- Detail -->
+                        <StackPanel Visibility="{Binding SelectedIngredient, Converter={StaticResource NullToVis}}">
+
+                            <!-- Ingredient name -->
+                            <TextBlock Text="{Binding IngredientName}" Style="{StaticResource PageTitleText}" Margin="0,0,0,20"/>
+
+                            <!-- 기본정보 Section -->
+                            <TextBlock Style="{StaticResource EditorSectionHeader}" Text="기본정보"/>
+                            <Border Style="{StaticResource DetailSectionBorder}">
+                                <StackPanel>
+                                    <TextBlock Style="{StaticResource FormFieldLabel}" Text="표준 재료명"/>
+                                    <TextBox Style="{StaticResource StandardTextBox}"
+                                             Text="{Binding IngredientName, UpdateSourceTrigger=PropertyChanged}"
+                                             MaxWidth="300" HorizontalAlignment="Left" Margin="0,0,0,12"/>
+
+                                    <TextBlock Style="{StaticResource FormFieldLabel}" Text="통계분석군"/>
+                                    <ComboBox Style="{StaticResource StandardComboBox}"
+                                              ItemsSource="{Binding StatGroups}"
+                                              SelectedItem="{Binding StatGroup}"
+                                              MaxWidth="200" HorizontalAlignment="Left" Margin="0,0,0,12"/>
+
+                                    <TextBlock Style="{StaticResource FormFieldLabel}" Text="기본단위"/>
+                                    <ComboBox Style="{StaticResource StandardComboBox}"
+                                              ItemsSource="{Binding Units}"
+                                              SelectedItem="{Binding DefaultUnit}" IsEditable="True"
+                                              MaxWidth="120" HorizontalAlignment="Left" Margin="0,0,0,12"/>
+
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,0">
+                                        <CheckBox Style="{StaticResource StandardCheckBox}" Content="통계 분석 제외"
+                                                  IsChecked="{Binding AnalysisExcluded}" Margin="0,0,24,0"/>
+                                        <CheckBox Style="{StaticResource StandardCheckBox}" Content="사용"
+                                                  IsChecked="{Binding IngredientActive}"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- 구매정보 Section -->
+                            <TextBlock Style="{StaticResource EditorSectionHeader}" Text="구매정보"/>
+                            <Border Style="{StaticResource DetailSectionBorder}">
+                                <StackPanel>
+                                    <TextBlock Style="{StaticResource FormFieldLabel}" Text="판매 포장수량"/>
+                                    <TextBox Style="{StaticResource StandardTextBox}"
+                                             Text="{Binding PurchasePackageQuantity, UpdateSourceTrigger=PropertyChanged}"
+                                             MaxWidth="100" HorizontalAlignment="Left" Margin="0,0,0,12"
+                                             ToolTip="예: 5 (5kg 단위 판매)"/>
+
+                                    <TextBlock Style="{StaticResource FormFieldLabel}" Text="판매 포장단위"/>
+                                    <ComboBox Style="{StaticResource StandardComboBox}"
+                                              ItemsSource="{Binding Units}"
+                                              SelectedItem="{Binding PurchasePackageUnit}" IsEditable="True"
+                                              MaxWidth="120" HorizontalAlignment="Left" Margin="0,0,0,12"
+                                              ToolTip="예: kg"/>
+
+                                    <TextBlock Style="{StaticResource FormFieldLabel}" Text="kg 환산계수"/>
+                                    <TextBox Style="{StaticResource StandardTextBox}"
+                                             Text="{Binding KgFactor, UpdateSourceTrigger=PropertyChanged}"
+                                             MaxWidth="100" HorizontalAlignment="Left"
+                                             ToolTip="기본단위 → kg 환산 계수"/>
+                                    <TextBlock Style="{StaticResource CaptionText}" Text="기본단위를 kg로 환산하는 계수 (예: g=0.001)"
+                                               Margin="0,4,0,0"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- 별칭 Section -->
+                            <TextBlock Style="{StaticResource EditorSectionHeader}" Text="별칭"/>
+                            <StackPanel>
+                                <!-- Alias chips -->
+                                <ItemsControl ItemsSource="{Binding Aliases}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <WrapPanel/>
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Style="{StaticResource AliasChip}">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="{Binding Alias}" Style="{StaticResource BodyText}"
+                                                               VerticalAlignment="Center"/>
+                                                    <Button Content="×" Style="{StaticResource AliasChipClose}"
+                                                            Command="{Binding DataContext.RemoveAliasCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                            CommandParameter="{Binding}"/>
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+
+                                <!-- Add alias -->
+                                <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                                    <TextBox Style="{StaticResource StandardTextBox}" Width="180"
+                                             Text="{Binding NewAlias, UpdateSourceTrigger=PropertyChanged}"
+                                             ToolTip="새 별칭 입력"/>
+                                    <Button Style="{StaticResource SubtleButton}" Content="추가"
+                                            Command="{Binding AddAliasCommand}" Margin="8,0,0,0"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <!-- Action Bar (bottom) -->
+                <Border Grid.Row="1" Style="{StaticResource DetailActionBar}">
+                    <DockPanel>
+                        <Button DockPanel.Dock="Right" Style="{StaticResource PrimaryButton}"
+                                Command="{Binding SaveIngredientCommand}" Margin="0,0,0,0"
+                                Visibility="{Binding SelectedIngredient, Converter={StaticResource NullToVis}}">
+                            <StackPanel Orientation="Horizontal">
+                                <Path Style="{StaticResource IconPathSmall}" Data="{StaticResource IconSave}" Margin="0,0,6,0" Stroke="White"/>
+                                <TextBlock Text="저장"/>
+                            </StackPanel>
+                        </Button>
+                        <Button DockPanel.Dock="Left" Style="{StaticResource DestructiveButton}"
+                                Command="{Binding ArchiveIngredientCommand}" Content="미사용 처리"
+                                Visibility="{Binding SelectedIngredient, Converter={StaticResource NullToVis}}"/>
+                        <TextBlock Style="{StaticResource CaptionText}" Text="변경사항은 저장 시 반영됩니다"
+                                   VerticalAlignment="Center"/>
+                    </DockPanel>
+                </Border>
+            </Grid>
+        </Grid>
+    </Grid>
+</UserControl>

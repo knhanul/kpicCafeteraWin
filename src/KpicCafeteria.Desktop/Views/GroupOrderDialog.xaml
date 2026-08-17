@@ -1,0 +1,32 @@
+<Window x:Class="KpicCafeteria.Desktop.Views.GroupOrderDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="묶음 발주" Width="380" SizeToContent="Height" WindowStartupLocation="CenterOwner" ResizeMode="NoResize"
+        FontFamily="{StaticResource AppFontFamily}" FontSize="13">
+    <StackPanel Margin="16">
+        <TextBlock Text="{Binding IngredientName}" FontSize="15" FontWeight="Bold"
+                   Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,8"/>
+        <TextBlock Text="필요량 합계" Style="{StaticResource CaptionText}" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,2"/>
+        <TextBlock Text="{Binding TotalRequiredDisplay}" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,8"/>
+
+        <TextBlock Text="추천 발주량" Style="{StaticResource CaptionText}" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,2"/>
+        <TextBlock Text="{Binding SuggestedDisplay}" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,12"/>
+
+        <TextBlock Text="발주량" Style="{StaticResource CaptionText}" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,2"/>
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+            <TextBox Style="{StaticResource StandardTextBox}" Width="120" Text="{Binding OrderQuantity, UpdateSourceTrigger=PropertyChanged}"/>
+            <TextBox Style="{StaticResource StandardTextBox}" Width="80" Text="{Binding OrderUnit, UpdateSourceTrigger=PropertyChanged}" Margin="8,0,0,0"/>
+        </StackPanel>
+
+        <TextBlock Text="발주일" Style="{StaticResource CaptionText}" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,2"/>
+        <DatePicker Style="{StaticResource StandardDatePicker}" SelectedDate="{Binding OrderDate}" Margin="0,0,0,8"/>
+
+        <TextBlock Text="배송일" Style="{StaticResource CaptionText}" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,2"/>
+        <DatePicker Style="{StaticResource StandardDatePicker}" SelectedDate="{Binding DeliveryDate}" Margin="0,0,0,12"/>
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Style="{StaticResource SecondaryButton}" Content="취소" IsCancel="True" Margin="0,0,8,0"/>
+            <Button Style="{StaticResource PrimaryButton}" Content="묶음 발주" Click="OnConfirm" IsDefault="True"/>
+        </StackPanel>
+    </StackPanel>
+</Window>

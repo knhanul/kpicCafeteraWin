@@ -2,7 +2,17 @@
 
   <ItemGroup>
     <ProjectReference Include="..\KpicCafeteria.Domain\KpicCafeteria.Domain.csproj" />
-    <ProjectReference Include="..\KpicCafeteria.Application\KpicCafeteria.Application.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ClosedXML" Version="0.105.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\assets\templates\식단표_반복페이지템플릿.hwpx" LogicalName="KpicCafeteria.Documents.Templates.meal-plan.hwpx" />
+    <EmbeddedResource Include="..\..\assets\templates\조리지시서_반복페이지템플릿.hwpx" LogicalName="KpicCafeteria.Documents.Templates.cooking-instruction.hwpx" />
+    <EmbeddedResource Include="..\..\assets\templates\보존식기록지_반복페이지템플릿.hwpx" LogicalName="KpicCafeteria.Documents.Templates.preservation-record.hwpx" />
+    <EmbeddedResource Include="..\..\assets\templates\template-page-config.json" LogicalName="KpicCafeteria.Documents.Templates.template-page-config.json" />
   </ItemGroup>
 
   <PropertyGroup>
